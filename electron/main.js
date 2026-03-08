@@ -352,13 +352,16 @@ ipcMain.handle('note:save', async (_event, note) => {
       const imgBuffer = Buffer.from(base64Data, 'base64')
       const config = configStore.getAll()
       const imgFilename = `screenshot_${Date.now()}.png`
-      const imgDir = path.join(config.obsidian.vaultPath, config.directories.assets)
+      // 截图图片存入 Inbox/Screenshots/ 目录，与笔记文件放在一起
+      const imgDir = path.join(config.obsidian.vaultPath, config.directories.screenshots)
       if (!fs.existsSync(imgDir)) fs.mkdirSync(imgDir, { recursive: true })
       const imgPath = path.join(imgDir, imgFilename)
       fs.writeFileSync(imgPath, imgBuffer)
       // 在内容中嵌入图片引用
-      note.content = `![[${config.directories.assets}/${imgFilename}]]\n\n${note.content || ''}`
+      note.content = `![[${config.directories.screenshots}/${imgFilename}]]\n\n${note.content || ''}`
       delete note.screenshot
+      // 有截图时强制将笔记路由到 Screenshots 目录
+      note.type = 'screenshot'
     }
 
     // 自动标签
