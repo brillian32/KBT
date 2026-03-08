@@ -1,0 +1,65 @@
+/* 赛博朋克 CSS 变量系统 */
+:root {
+  /* 主色调 */
+  --neon-cyan: #00F0FF;
+  --neon-magenta: #FF00E5;
+  --neon-purple: #BD00FF;
+
+  /* 背景色 */
+  --bg-deep: #0A0A0F;
+  --bg-panel: #12121A;
+  --bg-card: #1A1A2E;
+  --bg-elevated: #222236;
+
+  /* 文本色 */
+  --text-primary: #E0E0E0;
+  --text-secondary: #8888AA;
+  --text-muted: #555577;
+  --text-accent: #00F0FF;
+
+  /* 边框色 */
+  --border-default: #2A2A3E;
+  --border-hover: #3A3A5E;
+  --border-active: #00F0FF;
+
+  /* 状态色 */
+  --success: #00FF88;
+  --warning: #FFB800;
+  --error: #FF3366;
+
+  /* 阴影与发光 */
+  --glow-cyan: 0 0 10px rgba(0, 240, 255, 0.3);
+  --glow-magenta: 0 0 10px rgba(255, 0, 229, 0.3);
+  --glow-purple: 0 0 10px rgba(189, 0, 255, 0.3);
+
+  /* 玻璃质感 */
+  --glass-bg: rgba(18, 18, 26, 0.85);
+  --glass-border: rgba(0, 240, 255, 0.15);
+  --glass-blur: 12px;
+
+  /* 间距 */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* 圆角 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* 字体 */
+  --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
+
+  /* 动画时长 */
+  --transition-fast: 150ms;
+  --transition-normal: 250ms;
+  --transition-slow: 400ms;
+
+  /* 标题栏高度 */
+  --titlebar-height: 36px;
+  /* 侧边栏宽度 */
+  --sidebar-width: 56px;
+}
