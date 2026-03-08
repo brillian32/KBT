@@ -83,27 +83,27 @@
   color: var(--text-muted);
 }
 
-/* 标签 */
+/* 标签 — 默认紫色主题 */
 .tag {
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  background: rgba(0, 240, 255, 0.1);
-  color: var(--neon-cyan);
+  background: rgba(191, 90, 242, 0.15);
+  color: var(--neon-purple-light);
   font-size: 11px;
-  border: 1px solid rgba(0, 240, 255, 0.2);
+  border: 1px solid rgba(191, 90, 242, 0.3);
   border-radius: 12px;
   white-space: nowrap;
 }
 
-.tag--magenta {
-  background: rgba(255, 0, 229, 0.1);
-  color: var(--neon-magenta);
-  border-color: rgba(255, 0, 229, 0.2);
+.tag--cyan {
+  background: rgba(0, 240, 255, 0.1);
+  color: var(--neon-cyan-light);
+  border-color: rgba(0, 240, 255, 0.25);
 }
 
-.tag--purple {
-  background: rgba(189, 0, 255, 0.1);
-  color: var(--neon-purple);
-  border-color: rgba(189, 0, 255, 0.2);
+.tag--magenta {
+  background: rgba(255, 46, 151, 0.1);
+  color: var(--neon-magenta);
+  border-color: rgba(255, 46, 151, 0.2);
 }

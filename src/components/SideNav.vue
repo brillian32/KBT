@@ -132,11 +132,12 @@ const navItems = [
 }
 
 .sidenav__btn--active {
-  color: var(--neon-cyan);
-  background: rgba(0, 240, 255, 0.08);
+  color: var(--neon-purple-light);
+  background: rgba(191, 90, 242, 0.1);
+  border-left: 2px solid var(--neon-purple);
 }
 
 .sidenav__btn--active:hover {
-  color: var(--neon-cyan);
+  color: var(--neon-purple-light);
 }
 </style>

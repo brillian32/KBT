@@ -177,10 +177,10 @@ function cancel() {
 }
 
 .quick-note__type-btn.active {
-  border-color: var(--neon-cyan);
-  color: var(--neon-cyan);
-  background: rgba(0, 240, 255, 0.08);
-  box-shadow: var(--glow-cyan);
+  border-color: var(--neon-purple);
+  color: var(--neon-purple-light);
+  background: rgba(191, 90, 242, 0.08);
+  box-shadow: var(--glow-purple);
 }
 
 .quick-note__type-icon {
