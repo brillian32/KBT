@@ -27,4 +27,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onClipReceived: (callback) => {
     ipcRenderer.on('clip:received', (_event, data) => callback(data))
   },
+  onScreenshotRequest: (callback) => {
+    ipcRenderer.on('screenshot:request', (_event, mode) => callback(mode))
+  },
 })
