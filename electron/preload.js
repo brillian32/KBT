@@ -17,6 +17,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // 截图
   takeScreenshot: (mode) => ipcRenderer.invoke('screenshot:take', mode),
 
+  // 闪念笔记
+  openQuickNote: (data) => ipcRenderer.invoke('quicknote:open', data),
+
   // 监听事件
   onScreenshotTaken: (callback) => {
     ipcRenderer.on('screenshot:taken', (_event, data) => callback(data))
