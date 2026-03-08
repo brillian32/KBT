@@ -155,6 +155,7 @@ function createWindow() {
 
 function createQuickNoteWindow(screenshotData) {
   if (quickNoteWindow && !quickNoteWindow.isDestroyed()) {
+    // 窗口已存在：Vue 已 mounted，直接推送即可
     quickNoteWindow.focus()
     if (screenshotData) {
       quickNoteWindow.webContents.send('screenshot:taken', screenshotData)
@@ -175,18 +176,16 @@ function createQuickNoteWindow(screenshotData) {
     }
   })
 
+  // 将截图数据挂在窗口上，供渲染进程在 onMounted 后主动拉取
+  // 避免 did-finish-load 时 Vue 尚未 mounted 导致推送事件丢失
+  quickNoteWindow._pendingScreenshot = screenshotData || null
+
   const devURL = getLoadURL('/quick-note')
   if (devURL) {
     quickNoteWindow.loadURL(devURL)
   } else {
     quickNoteWindow.loadFile(getLoadFile(), { hash: '/quick-note' })
   }
-
-  quickNoteWindow.webContents.once('did-finish-load', () => {
-    if (screenshotData) {
-      quickNoteWindow.webContents.send('screenshot:taken', screenshotData)
-    }
-  })
 
   quickNoteWindow.on('closed', () => {
     quickNoteWindow = null
@@ -297,14 +296,7 @@ function createRegionSelectWindow(screenshotBase64) {
     regionSelectWindow.loadFile(getLoadFile(), { hash: '/region-select' })
   }
 
-  // 窗口加载完后发送背景截图
-  regionSelectWindow.webContents.once('did-finish-load', () => {
-    if (regionSelectWindow && !regionSelectWindow.isDestroyed()) {
-      regionSelectWindow.webContents.send('screenshot:backdrop', screenshotBase64)
-    }
-  })
-
-  // 保存背景截图供确认时裁剪使用
+  // 保存背景截图供渲染进程主动拉取（region:get-backdrop）
   regionSelectWindow._screenshotBase64 = screenshotBase64
 
   regionSelectWindow.on('closed', () => {
@@ -400,23 +392,27 @@ ipcMain.handle('notes:list', () => {
   return notesHistory
 })
 
-// IPC handler — 截图
+// IPC handler — 截图（调用 handleScreenshot 以打开相应窗口）
 ipcMain.handle('screenshot:take', async (_event, mode) => {
   try {
-    let buffer
-    if (mode === 'full') {
-      buffer = await screenshot.captureFullScreen()
-    } else if (mode === 'region') {
-      // 先全屏截图，然后在渲染进程选区后裁剪
-      buffer = await screenshot.captureFullScreen()
-    } else {
-      throw new Error(`未知截图模式: ${mode}`)
-    }
-    const base64 = buffer.toString('base64')
-    return { base64, mode }
+    await handleScreenshot(mode)
+    return { success: true }
   } catch (err) {
     return { error: err.message }
   }
+})
+
+// IPC handler — QuickNote 渲染进程主动拉取待显示的截图（避免时序问题）
+ipcMain.handle('screenshot:get-pending', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  const data = win?._pendingScreenshot || null
+  if (win) win._pendingScreenshot = null  // 消费后清除
+  return data
+})
+
+// IPC handler — 渲染进程主动拉取背景截图（避免 did-finish-load 时 Vue 尚未 mounted 的时序问题）
+ipcMain.handle('region:get-backdrop', () => {
+  return regionSelectWindow?._screenshotBase64 || null
 })
 
 // IPC handler — 区域选择确认

@@ -72,9 +72,17 @@ const contentRef = ref(null)
 
 const canSave = computed(() => content.value.trim() || screenshotSrc.value)
 
-onMounted(() => {
-  // 监听截图数据（从主进程传入）
-  if (window.electronAPI) {
+onMounted(async () => {
+  // 主动拉取待显示的截图（避免 did-finish-load 早于 Vue mounted 导致事件丢失）
+  if (window.electronAPI?.getPendingScreenshot) {
+    const data = await window.electronAPI.getPendingScreenshot()
+    if (data?.base64) {
+      screenshotSrc.value = `data:image/png;base64,${data.base64}`
+    }
+  }
+
+  // 保留监听：用于窗口已存在时主进程推送新截图（如重复触发快捷键）
+  if (window.electronAPI?.onScreenshotTaken) {
     window.electronAPI.onScreenshotTaken((data) => {
       if (data?.base64) {
         screenshotSrc.value = `data:image/png;base64,${data.base64}`
