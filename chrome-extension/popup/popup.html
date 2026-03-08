@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="popup.css">
+  <title>Knowledge Base Tools</title>
+</head>
+<body>
+  <div class="popup">
+    <!-- 连接状态 -->
+    <div class="popup__header">
+      <h1 class="popup__title">KBT</h1>
+      <div id="status" class="popup__status popup__status--checking">
+        <span class="popup__status-dot"></span>
+        <span id="statusText">检测中...</span>
+      </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="popup__actions">
+      <button id="btnFullPage" class="popup__btn" disabled>
+        <span class="popup__btn-icon">📄</span>
+        保存整页
+      </button>
+      <button id="btnSelection" class="popup__btn" disabled>
+        <span class="popup__btn-icon">✂️</span>
+        保存选中
+      </button>
+      <button id="btnInspect" class="popup__btn" disabled>
+        <span class="popup__btn-icon">🔍</span>
+        元素检查
+      </button>
+    </div>
+
+    <!-- 标题编辑 -->
+    <div class="popup__field">
+      <input id="noteTitle" type="text" placeholder="标题（自动提取）" />
+    </div>
+
+    <!-- 标签编辑 -->
+    <div class="popup__field">
+      <div id="tagContainer" class="popup__tags">
+        <input id="tagInput" type="text" placeholder="添加标签..." />
+      </div>
+    </div>
+
+    <!-- Token 配置 -->
+    <div id="tokenSection" class="popup__token-section" style="display:none;">
+      <p class="popup__hint">首次使用请输入 Token（从桌面端设置页获取）</p>
+      <input id="tokenInput" type="password" placeholder="粘贴 Token..." />
+      <button id="btnSaveToken" class="popup__btn popup__btn--small">保存 Token</button>
+    </div>
+
+    <!-- 消息提示 -->
+    <div id="message" class="popup__message" style="display:none;"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

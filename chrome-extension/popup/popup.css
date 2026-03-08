@@ -1,0 +1,232 @@
+/* 赛博朋克风格 Popup */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 320px;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #0A0A0F;
+  color: #E0E0E0;
+}
+
+.popup {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Header */
+.popup__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.popup__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #00F0FF;
+  letter-spacing: 2px;
+}
+
+.popup__status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.popup__status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #555577;
+}
+
+.popup__status--connected .popup__status-dot {
+  background: #00FF88;
+  box-shadow: 0 0 6px rgba(0, 255, 136, 0.5);
+}
+
+.popup__status--disconnected .popup__status-dot {
+  background: #FF3366;
+  box-shadow: 0 0 6px rgba(255, 51, 102, 0.5);
+}
+
+.popup__status--checking .popup__status-dot {
+  background: #FFB800;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* 操作按钮 */
+.popup__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.popup__btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 8px;
+  border: 1px solid #2A2A3E;
+  border-radius: 8px;
+  background: #1A1A2E;
+  color: #E0E0E0;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.popup__btn:hover:not(:disabled) {
+  border-color: #00F0FF;
+  color: #00F0FF;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+
+.popup__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.popup__btn-icon {
+  font-size: 20px;
+}
+
+.popup__btn--small {
+  flex: none;
+  flex-direction: row;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+/* 输入字段 */
+.popup__field input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #2A2A3E;
+  border-radius: 8px;
+  background: #1A1A2E;
+  color: #E0E0E0;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 150ms;
+}
+
+.popup__field input:focus {
+  border-color: #00F0FF;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
+}
+
+/* 标签容器 */
+.popup__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid #2A2A3E;
+  border-radius: 8px;
+  background: #1A1A2E;
+  min-height: 36px;
+}
+
+.popup__tags:focus-within {
+  border-color: #00F0FF;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
+}
+
+.popup__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 8px;
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 4px;
+  color: #00F0FF;
+  font-size: 11px;
+}
+
+.popup__tag-remove {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0 2px;
+  opacity: 0.6;
+}
+
+.popup__tag-remove:hover {
+  opacity: 1;
+}
+
+.popup__tags input {
+  border: none;
+  background: none;
+  color: #E0E0E0;
+  font-size: 12px;
+  outline: none;
+  flex: 1;
+  min-width: 80px;
+  padding: 2px 4px;
+}
+
+/* Token 配置 */
+.popup__token-section {
+  padding: 10px;
+  border: 1px solid #2A2A3E;
+  border-radius: 8px;
+  background: rgba(255, 184, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.popup__hint {
+  font-size: 11px;
+  color: #FFB800;
+}
+
+.popup__token-section input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid #2A2A3E;
+  border-radius: 6px;
+  background: #1A1A2E;
+  color: #E0E0E0;
+  font-size: 12px;
+  font-family: 'Cascadia Code', monospace;
+  outline: none;
+}
+
+/* 消息提示 */
+.popup__message {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.popup__message--success {
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  color: #00FF88;
+}
+
+.popup__message--error {
+  background: rgba(255, 51, 102, 0.1);
+  border: 1px solid rgba(255, 51, 102, 0.3);
+  color: #FF3366;
+}
