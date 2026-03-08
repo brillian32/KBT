@@ -1,0 +1,26 @@
+appId: com.kbt.knowledge-base-tools
+productName: Knowledge Base Tools
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - electron/**/*
+  - dist/**/*
+  - package.json
+
+extraResources:
+  - from: chrome-extension
+    to: chrome-extension
+
+win:
+  target: nsis
+  icon: build/icon.ico
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  perMachine: false
+  deleteAppDataOnUninstall: false
+
+asar: true

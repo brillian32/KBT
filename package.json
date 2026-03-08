@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .\"",
     "dev:web": "vite",
-    "build": "vite build && electron-builder",
+    "build": "vite build",
+    "build:dist": "vite build && electron-builder",
     "test": "vitest run",
     "test:watch": "vitest"
   },
