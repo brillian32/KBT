@@ -2,28 +2,26 @@
   <div class="app-shell">
     <TitleBar />
     <div class="app-body">
-      <SideNav :currentPath="currentPath" @navigate="navigate" />
+      <SideNav :currentPath="currentRoute" @navigate="navigate" />
       <main class="app-content">
-        <router-view v-if="hasRouter" />
-        <div v-else class="placeholder">
-          <h1>Knowledge Base Tools</h1>
-          <p>赛博朋克知识库工具</p>
-        </div>
+        <router-view />
       </main>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import TitleBar from './components/TitleBar.vue'
 import SideNav from './components/SideNav.vue'
 
-const currentPath = ref('/')
-const hasRouter = computed(() => false) // 待 Task 13 接入 router
+const router = useRouter()
+const route = useRoute()
+const currentRoute = computed(() => route.path)
 
 function navigate(path) {
-  currentPath.value = path
+  router.push(path)
 }
 </script>
 
