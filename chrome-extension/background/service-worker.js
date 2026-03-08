@@ -28,32 +28,49 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 })
 
+// 监听来自 content script 的元素检查结果
+chrome.runtime.onMessage.addListener((msg, sender) => {
+  if (msg.action === 'inspectResult' && msg.content) {
+    // 元素检查完成，发送到 Electron
+    sendToElectron({
+      title: msg.title || '元素提取',
+      content: msg.content,
+      url: msg.url || sender.tab?.url,
+      type: 'webclip',
+      tags: [],
+    })
+  }
+})
+
 async function clipFromTab(tab, mode) {
   try {
-    // 向 content script 发送提取请求
     const result = await chrome.tabs.sendMessage(tab.id, { action: 'extract', mode })
     if (!result?.content) return
 
-    // 获取 token
-    const stored = await chrome.storage.local.get(['kbt_token'])
-    const token = stored.kbt_token || ''
-
-    // 发送到 Electron
-    await fetch(`${API_BASE}/api/clip`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        title: tab.title || '未命名',
-        content: result.content,
-        url: tab.url,
-        type: 'webclip',
-        tags: [],
-      }),
+    await sendToElectron({
+      title: tab.title || '未命名',
+      content: result.content,
+      url: tab.url,
+      type: 'webclip',
+      tags: [],
     })
   } catch {
-    // 静默失败（右键菜单操作无法显示错误）
+    // 静默失败
   }
+}
+
+async function sendToElectron(data) {
+  const stored = await chrome.storage.local.get(['kbt_token'])
+  const token = stored.kbt_token || ''
+
+  const resp = await fetch(`${API_BASE}/api/clip`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  })
+
+  return resp.ok
 }

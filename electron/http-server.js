@@ -9,6 +9,7 @@ class HttpServer {
     this.tagger = autoTagger
     this.token = crypto.randomBytes(32).toString('hex')
     this.server = null
+    this.onClipCallback = null
 
     this.app = express()
     this._setupMiddleware()
@@ -17,6 +18,10 @@ class HttpServer {
 
   getToken() {
     return this.token
+  }
+
+  onClip(callback) {
+    this.onClipCallback = callback
   }
 
   _setupMiddleware() {
@@ -63,6 +68,12 @@ class HttpServer {
 
         note.frontmatter = this.tagger.generateFrontmatter(note)
         const result = await this.writer.write(note)
+
+        // 通知主进程
+        if (this.onClipCallback) {
+          this.onClipCallback({ ...note, result })
+        }
+
         res.json(result)
       } catch (err) {
         res.status(500).json({ success: false, error: err.message })
