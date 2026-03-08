@@ -8,6 +8,7 @@ const { Screenshot } = require('./screenshot')
 
 let mainWindow = null
 let quickNoteWindow = null
+let regionSelectWindow = null
 let tray = null
 
 // 后端模块实例
@@ -247,12 +248,68 @@ function registerGlobalShortcuts() {
   globalShortcut.register('Ctrl+Shift+A', () => handleScreenshot('region'))
 }
 
-// 截图处理（快捷键/托盘触发）
-function handleScreenshot(mode) {
-  // 将截图请求发送到主窗口处理，完成后弹出 QuickNote
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('screenshot:request', mode)
+// 截图处理（快捷键/托盘触发）— 直接在主进程完成，不依赖渲染进程
+async function handleScreenshot(mode) {
+  try {
+    const buffer = await screenshot.captureFullScreen()
+    const base64 = buffer.toString('base64')
+
+    if (mode === 'full') {
+      createQuickNoteWindow({ base64, mode: 'full' })
+    } else if (mode === 'region') {
+      createRegionSelectWindow(base64)
+    }
+  } catch (err) {
+    console.error('截图失败:', err.message)
   }
+}
+
+// 区域选择覆盖窗口
+function createRegionSelectWindow(screenshotBase64) {
+  if (regionSelectWindow && !regionSelectWindow.isDestroyed()) {
+    regionSelectWindow.close()
+  }
+
+  const { screen } = require('electron')
+  const display = screen.getPrimaryDisplay()
+  const { x, y, width, height } = display.bounds
+
+  regionSelectWindow = new BrowserWindow({
+    x,
+    y,
+    width,
+    height,
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  })
+
+  const devURL = getLoadURL('/region-select')
+  if (devURL) {
+    regionSelectWindow.loadURL(devURL)
+  } else {
+    regionSelectWindow.loadFile(getLoadFile(), { hash: '/region-select' })
+  }
+
+  // 窗口加载完后发送背景截图
+  regionSelectWindow.webContents.once('did-finish-load', () => {
+    if (regionSelectWindow && !regionSelectWindow.isDestroyed()) {
+      regionSelectWindow.webContents.send('screenshot:backdrop', screenshotBase64)
+    }
+  })
+
+  // 保存背景截图供确认时裁剪使用
+  regionSelectWindow._screenshotBase64 = screenshotBase64
+
+  regionSelectWindow.on('closed', () => {
+    regionSelectWindow = null
+  })
 }
 
 // IPC handlers — 窗口控制
@@ -360,6 +417,44 @@ ipcMain.handle('screenshot:take', async (_event, mode) => {
   } catch (err) {
     return { error: err.message }
   }
+})
+
+// IPC handler — 区域选择确认
+ipcMain.handle('region:confirm', (_event, bounds) => {
+  if (!regionSelectWindow || regionSelectWindow.isDestroyed()) return { success: false }
+  const base64 = regionSelectWindow._screenshotBase64
+  regionSelectWindow.close()
+
+  if (!base64) return { success: false }
+  try {
+    const { nativeImage, screen } = require('electron')
+    const display = screen.getPrimaryDisplay()
+    const scaleFactor = display.scaleFactor || 1
+
+    const scaledBounds = {
+      x: Math.round(bounds.x * scaleFactor),
+      y: Math.round(bounds.y * scaleFactor),
+      width: Math.round(bounds.width * scaleFactor),
+      height: Math.round(bounds.height * scaleFactor),
+    }
+
+    const img = nativeImage.createFromBuffer(Buffer.from(base64, 'base64'))
+    const cropped = img.crop(scaledBounds)
+    const croppedBase64 = cropped.toPNG().toString('base64')
+    createQuickNoteWindow({ base64: croppedBase64, mode: 'region' })
+    return { success: true }
+  } catch (err) {
+    console.error('裁剪截图失败:', err.message)
+    return { success: false, error: err.message }
+  }
+})
+
+// IPC handler — 区域选择取消
+ipcMain.handle('region:cancel', () => {
+  if (regionSelectWindow && !regionSelectWindow.isDestroyed()) {
+    regionSelectWindow.close()
+  }
+  return { cancelled: true }
 })
 
 app.whenReady().then(() => {

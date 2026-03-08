@@ -1,41 +1,47 @@
-/* 赛博朋克 CSS 变量系统 */
+/* 赛博朋克 CSS 变量系统 — 暗夜霓虹 · 赛博质感 */
 :root {
   /* 主色调 */
-  --neon-cyan: #00F0FF;
-  --neon-magenta: #FF00E5;
-  --neon-purple: #BD00FF;
+  --neon-cyan: #00F0FF;         /* 荧光青 — 次强调/链接/活跃指示 */
+  --neon-cyan-hover: #00C4D4;   /* 暗青 */
+  --neon-cyan-light: #7DF9FF;   /* 冰蓝 — 次级高亮 */
+  --neon-purple: #BF5AF2;       /* 霓虹紫 — 主强调/主按钮/品牌色 */
+  --neon-purple-hover: #9D48C8; /* 暗紫 */
+  --neon-purple-light: #D98EF9; /* 浅紫 — 高亮/badge */
+  --neon-magenta: #FF2E97;      /* 赛博粉 — 警告/收藏标记 */
+  --neon-yellow: #FFE558;       /* 电光黄 — 点缀/计数 */
 
   /* 背景色 */
-  --bg-deep: #0A0A0F;
-  --bg-panel: #12121A;
-  --bg-card: #1A1A2E;
-  --bg-elevated: #222236;
+  --bg-deep: #08080F;           /* 深渊黑 — 主背景 */
+  --bg-panel: #0E0E1A;          /* 暗紫黑 — 侧边栏/卡片背景 */
+  --bg-card: #141422;           /* 午夜蓝 — 弹窗背景 */
+  --bg-elevated: #1C1C30;       /* 暗钴蓝 — 输入框/次级面板 */
+  --bg-hover: #262640;          /* 石英紫 — hover 状态 */
 
   /* 文本色 */
-  --text-primary: #E0E0E0;
-  --text-secondary: #8888AA;
-  --text-muted: #555577;
-  --text-accent: #00F0FF;
+  --text-primary: #E4E4F0;      /* 冷白色 */
+  --text-secondary: #8888A8;    /* 灰紫色 */
+  --text-muted: #4C4C66;        /* 暗灰紫 / placeholder */
+  --text-accent: #00F0FF;       /* 荧光青 */
 
   /* 边框色 */
-  --border-default: #2A2A3E;
-  --border-hover: #3A3A5E;
-  --border-active: #00F0FF;
+  --border-default: #30304A;    /* 钛蓝灰 */
+  --border-hover: #262640;      /* 石英紫 */
+  --border-active: #00F0FF;     /* 荧光青 */
 
   /* 状态色 */
-  --success: #00FF88;
-  --warning: #FFB800;
-  --error: #FF3366;
+  --success: #00F0A0;           /* 矩阵绿 */
+  --warning: #FFE558;           /* 电光黄 */
+  --error: #FF4466;             /* 烈焰红 */
 
   /* 阴影与发光 */
   --glow-cyan: 0 0 10px rgba(0, 240, 255, 0.3);
-  --glow-magenta: 0 0 10px rgba(255, 0, 229, 0.3);
-  --glow-purple: 0 0 10px rgba(189, 0, 255, 0.3);
+  --glow-purple: 0 0 10px rgba(191, 90, 242, 0.3);
+  --glow-magenta: 0 0 10px rgba(255, 46, 151, 0.3);
 
   /* 玻璃质感 */
-  --glass-bg: rgba(18, 18, 26, 0.85);
-  --glass-border: rgba(0, 240, 255, 0.15);
-  --glass-blur: 12px;
+  --glass-bg: rgba(14, 14, 26, 0.75);
+  --glass-border: rgba(191, 90, 242, 0.1);
+  --glass-blur: 20px;
 
   /* 间距 */
   --space-xs: 4px;

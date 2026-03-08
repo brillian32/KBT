@@ -17,6 +17,16 @@ const routes = [
     name: 'quick-note',
     component: () => import('../views/QuickNote.vue'),
   },
+  {
+    path: '/region-select',
+    name: 'region-select',
+    component: () => import('../views/RegionSelect.vue'),
+  },
+  {
+    path: '/region-select',
+    name: 'region-select',
+    component: () => import('../views/RegionSelect.vue'),
+  },
 ]
 
 const router = createRouter({

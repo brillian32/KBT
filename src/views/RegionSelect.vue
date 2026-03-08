@@ -111,11 +111,11 @@ function cancel() {
 
 onMounted(() => {
   container.value?.focus()
-  // 从 URL 参数获取背景截图
-  const params = new URLSearchParams(window.location.search)
-  const bg = params.get('bg')
-  if (bg) {
-    backgroundImage.value = bg
+  // 通过 IPC 接收主进程发送的背景截图
+  if (window.electronAPI?.onScreenshotBackdrop) {
+    window.electronAPI.onScreenshotBackdrop((base64) => {
+      backgroundImage.value = `data:image/png;base64,${base64}`
+    })
   }
 })
 </script>
@@ -154,7 +154,7 @@ onMounted(() => {
 
 .selection-box {
   position: absolute;
-  border: 2px solid #00F0FF;
+  border: 2px solid var(--neon-cyan, #00F0FF);
   background: transparent;
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
   z-index: 10;
@@ -166,7 +166,7 @@ onMounted(() => {
   top: -24px;
   left: 0;
   font-size: 12px;
-  color: #00F0FF;
+  color: var(--neon-cyan, #00F0FF);
   background: rgba(0, 0, 0, 0.7);
   padding: 2px 6px;
   border-radius: 3px;
@@ -179,7 +179,7 @@ onMounted(() => {
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 18px;
-  color: #00F0FF;
+  color: var(--neon-cyan, #00F0FF);
   background: rgba(0, 0, 0, 0.6);
   padding: 12px 24px;
   border-radius: 8px;
@@ -204,12 +204,12 @@ onMounted(() => {
 }
 
 .confirm {
-  background: #00F0FF;
-  color: #0A0A0F;
+  background: var(--neon-cyan, #00F0FF);
+  color: var(--bg-deep, #08080F);
 }
 
 .cancel-btn {
-  background: #FF00E5;
-  color: #0A0A0F;
+  background: var(--neon-magenta, #FF2E97);
+  color: var(--bg-deep, #08080F);
 }
 </style>

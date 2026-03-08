@@ -3,11 +3,11 @@
     <div class="sidenav__top">
       <button
         v-for="item in navItems"
-        :key="item.path"
+        :key="item.id"
         class="sidenav__btn"
-        :class="{ 'sidenav__btn--active': currentPath === item.path }"
+        :class="{ 'sidenav__btn--active': !item.action && currentPath === item.path }"
         :title="item.label"
-        @click="$emit('navigate', item.path)"
+        @click="handleClick(item)"
       >
         <component :is="item.icon" />
       </button>
@@ -35,7 +35,15 @@ defineProps({
   },
 })
 
-defineEmits(['navigate'])
+const emit = defineEmits(['navigate'])
+
+function handleClick(item) {
+  if (item.action) {
+    item.action()
+  } else {
+    emit('navigate', item.path)
+  }
+}
 
 // 简单 SVG 图标组件
 const BookmarkIcon = {
@@ -74,8 +82,13 @@ const SettingsIcon = {
 }
 
 const navItems = [
-  { path: '/', label: '收藏', icon: InboxIcon },
-  { path: '/capture', label: '截图', icon: CameraIcon },
+  { id: 'home', path: '/', label: '收藏', icon: InboxIcon },
+  {
+    id: 'screenshot',
+    label: '全屏截图',
+    icon: CameraIcon,
+    action: () => window.electronAPI?.takeScreenshot('full'),
+  },
 ]
 </script>
 

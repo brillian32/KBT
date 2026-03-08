@@ -10,8 +10,8 @@
 }
 
 .glass-card:hover {
-  border-color: var(--neon-cyan);
-  box-shadow: var(--glow-cyan);
+  border-color: rgba(191, 90, 242, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(191, 90, 242, 0.08);
 }
 
 /* 按钮 */
@@ -21,8 +21,8 @@
   justify-content: center;
   gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
-  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
-  color: var(--bg-deep);
+  background: linear-gradient(135deg, var(--neon-purple), var(--neon-purple-hover));
+  color: #FFFFFF;
   font-weight: 600;
   font-size: 13px;
   border: none;
@@ -32,8 +32,8 @@
 }
 
 .btn-primary:hover {
-  opacity: 0.9;
-  box-shadow: var(--glow-cyan);
+  background: linear-gradient(135deg, var(--neon-purple-light), var(--neon-purple));
+  box-shadow: 0 0 24px rgba(191, 90, 242, 0.4);
 }
 
 .btn-primary:active {
