@@ -16,8 +16,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // 截图
   takeScreenshot: (mode) => ipcRenderer.invoke('screenshot:take', mode),
-  confirmRegion: (bounds) => ipcRenderer.invoke('region:confirm', bounds),
-  cancelRegion: () => ipcRenderer.invoke('region:cancel'),
+  confirmRegion: (bounds) => ipcRenderer.send('region:confirm', bounds),
+  cancelRegion: () => ipcRenderer.send('region:cancel'),
 
   // 闪念笔记
   openQuickNote: (data) => ipcRenderer.invoke('quicknote:open', data),
