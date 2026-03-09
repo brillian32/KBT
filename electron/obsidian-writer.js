@@ -15,12 +15,16 @@ class ObsidianWriter {
   }
 
   _getDirForType(type) {
+    const t = (type || '').toLowerCase()
     const map = {
-      webClip: this.directories.webClips,
+      webclip: this.directories.webClips,
       screenshot: this.directories.screenshots,
       text: this.directories.textNotes,
+      inspiration: this.directories.textNotes,
+      todo: this.directories.textNotes,
+      note: this.directories.textNotes,
     }
-    return map[type] || this.directories.textNotes
+    return map[t] || this.directories.textNotes
   }
 
   _getUniquePath(filePath) {

@@ -24,19 +24,25 @@
           @keydown.enter.prevent="addTag"
         />
       </div>
-      <button
-        class="btn-primary"
-        :disabled="!content.trim() || saving"
-        @click="save"
-      >
-        {{ saving ? '保存中...' : '存入知识库' }}
-      </button>
+      <div class="text-paste__actions">
+        <button class="btn-secondary text-paste__screenshot-btn" title="截图入库" @click="takeScreenshot">
+          <CameraIcon />
+          <span>截图</span>
+        </button>
+        <button
+          class="btn-primary"
+          :disabled="!content.trim() || saving"
+          @click="save"
+        >
+          {{ saving ? '保存中...' : '存入知识库' }}
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { h, ref } from 'vue'
 import { useNotesStore } from '../stores/notes.js'
 
 const notesStore = useNotesStore()
@@ -46,6 +52,20 @@ const content = ref('')
 const tags = ref([])
 const newTag = ref('')
 const saving = ref(false)
+
+// 截图图标
+const CameraIcon = {
+  render() {
+    return h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [
+      h('path', { d: 'M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z' }),
+      h('circle', { cx: 12, cy: 13, r: 4 }),
+    ])
+  },
+}
+
+function takeScreenshot() {
+  window.electronAPI?.takeScreenshot('full')
+}
 
 function addTag() {
   const tag = newTag.value.trim()
@@ -108,6 +128,31 @@ async function save() {
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--space-md);
+}
+
+.text-paste__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.text-paste__screenshot-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  padding: 6px 12px;
+  background: rgba(191, 90, 242, 0.08);
+  border: 1px solid rgba(191, 90, 242, 0.25);
+  color: var(--neon-purple-light);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.text-paste__screenshot-btn:hover {
+  background: rgba(191, 90, 242, 0.18);
+  border-color: var(--neon-purple);
 }
 
 .text-paste__tags {

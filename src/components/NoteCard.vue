@@ -1,7 +1,7 @@
 <template>
   <div class="note-card glass-card" @click="$emit('click', note)">
     <div class="note-card__header">
-      <span class="note-card__icon">
+      <span class="note-card__icon" :style="iconStyle">
         <component :is="typeIcon" />
       </span>
       <span class="note-card__title">{{ note.title }}</span>
@@ -77,9 +77,46 @@ const CameraIcon = {
   },
 }
 
+const LightbulbIcon = {
+  render() {
+    return h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [
+      h('path', { d: 'M9 21h6' }),
+      h('path', { d: 'M12 3a6 6 0 0 1 6 6c0 3.5-2 5.5-2 5.5H8S6 12.5 6 9a6 6 0 0 1 6-6z' }),
+    ])
+  },
+}
+
+const CheckIcon = {
+  render() {
+    return h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [
+      h('polyline', { points: '9 11 12 14 22 4' }),
+      h('path', { d: 'M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11' }),
+    ])
+  },
+}
+
 const typeIcon = computed(() => {
-  const map = { webClip: WebIcon, screenshot: CameraIcon, text: TextIcon }
+  const map = {
+    webClip: WebIcon,
+    screenshot: CameraIcon,
+    text: TextIcon,
+    inspiration: LightbulbIcon,
+    todo: CheckIcon,
+    note: TextIcon,
+  }
   return map[props.note.type] || TextIcon
+})
+
+const iconStyle = computed(() => {
+  const colorMap = {
+    webClip: 'var(--neon-cyan)',
+    screenshot: 'var(--neon-purple)',
+    text: 'var(--neon-cyan)',
+    inspiration: 'var(--neon-yellow)',
+    todo: 'var(--success)',
+    note: 'var(--neon-cyan)',
+  }
+  return { color: colorMap[props.note.type] || 'var(--neon-cyan)' }
 })
 </script>
 
@@ -103,7 +140,7 @@ const typeIcon = computed(() => {
 
 .note-card__icon {
   display: flex;
-  color: var(--neon-cyan);
+  /* color 由 iconStyle 动态控制 */
 }
 
 .note-card__title {

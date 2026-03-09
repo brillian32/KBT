@@ -48,18 +48,19 @@
       })
       if (resp.ok) {
         setStatus('connected', '已连接')
-        enableButtons(true)
-        tokenSection.style.display = 'none'
+        if (token) {
+          enableButtons(true)
+          tokenSection.style.display = 'none'
+        } else {
+          enableButtons(false)
+          tokenSection.style.display = ''
+        }
       } else {
         throw new Error('not ok')
       }
     } catch {
-      if (!token) {
-        setStatus('disconnected', '未连接')
-        tokenSection.style.display = ''
-      } else {
-        setStatus('disconnected', '桌面端未运行')
-      }
+      setStatus('disconnected', token ? '桌面端未运行' : '未连接')
+      tokenSection.style.display = ''
       enableButtons(false)
     }
   }
@@ -125,12 +126,38 @@
   btnSelection.addEventListener('click', () => clipPage('selection'))
   btnInspect.addEventListener('click', () => startInspect())
 
+  // 向 tab 发送消息，如果 content script 未注入则先动态注入再重试
+  async function sendToContentScript(tabId, msg) {
+    try {
+      return await chrome.tabs.sendMessage(tabId, msg)
+    } catch (err) {
+      if (err.message && err.message.includes('Receiving end does not exist')) {
+        // 动态注入 content script 后重试
+        await chrome.scripting.executeScript({
+          target: { tabId },
+          files: ['content/extractor.js'],
+        })
+        // 等待 content script 初始化
+        await new Promise(r => setTimeout(r, 150))
+        return await chrome.tabs.sendMessage(tabId, msg)
+      }
+      throw err
+    }
+  }
+
   async function clipPage(mode) {
     enableButtons(false)
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-      // 向 content script 发送提取请求
-      const result = await chrome.tabs.sendMessage(tab.id, { action: 'extract', mode })
+
+      // 浏览器内部页面无法注入 content script
+      if (!tab?.url || /^(chrome|edge|about|data):/.test(tab.url)) {
+        showMessage('当前页面不支持提取内容', 'error')
+        return
+      }
+
+      // 向 content script 发送提取请求（带自动注入重试）
+      const result = await sendToContentScript(tab.id, { action: 'extract', mode })
 
       if (!result?.content) {
         showMessage('未能提取内容', 'error')
@@ -169,7 +196,11 @@
   async function startInspect() {
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-      await chrome.tabs.sendMessage(tab.id, { action: 'inspect' })
+      if (!tab?.url || /^(chrome|edge|about|data):/.test(tab.url)) {
+        showMessage('当前页面不支持元素检查', 'error')
+        return
+      }
+      await sendToContentScript(tab.id, { action: 'inspect' })
       // 关闭 popup，用户在页面上操作
       window.close()
     } catch (err) {

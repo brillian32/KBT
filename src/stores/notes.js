@@ -30,6 +30,13 @@ export const useNotesStore = defineStore('notes', () => {
     }
   }
 
+  // 监听主进程推送的刷新事件（忪Note 保存、HTTP clip 不就序刺激）
+  function initListeners() {
+    if (window.electronAPI?.onClipReceived) {
+      window.electronAPI.onClipReceived(() => loadNotes())
+    }
+  }
+
   async function saveNote(note) {
     try {
       const result = await window.electronAPI?.saveNote(note)
@@ -42,5 +49,5 @@ export const useNotesStore = defineStore('notes', () => {
     }
   }
 
-  return { notes, loading, addNote, loadNotes, saveNote }
+  return { notes, loading, addNote, loadNotes, saveNote, initListeners }
 })

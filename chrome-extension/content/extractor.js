@@ -1,6 +1,12 @@
 // extractor.js — Chrome Extension Content Script
 // 网页内容提取器：整页/选中/元素检查三种模式
 
+// 防止重复注入（动态 executeScript 可能多次调用）
+if (window.__kbt_content_injected__) {
+  // 已注入，什么都不做
+} else {
+window.__kbt_content_injected__ = true
+
 ;(function () {
   'use strict'
 
@@ -74,6 +80,44 @@
     }
   }
 
+  // 页面内 Toast 通知
+  function showPageToast(text, type = 'info') {
+    const existing = document.getElementById('kbt-toast')
+    if (existing) existing.remove()
+    const toast = document.createElement('div')
+    toast.id = 'kbt-toast'
+    const colors = {
+      info:    { bg: 'rgba(0,240,255,0.12)',  border: '#00F0FF', text: '#00F0FF' },
+      success: { bg: 'rgba(0,255,136,0.12)',  border: '#00FF88', text: '#00FF88' },
+      error:   { bg: 'rgba(255,51,102,0.12)', border: '#FF3366', text: '#FF3366' },
+    }
+    const c = colors[type] || colors.info
+    Object.assign(toast.style, {
+      position: 'fixed',
+      top: '16px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      zIndex: '2147483647',
+      padding: '10px 20px',
+      borderRadius: '8px',
+      border: `1px solid ${c.border}`,
+      background: c.bg,
+      color: c.text,
+      fontSize: '13px',
+      fontFamily: 'system-ui, sans-serif',
+      boxShadow: `0 0 16px ${c.border}44`,
+      backdropFilter: 'blur(8px)',
+      pointerEvents: 'none',
+      whiteSpace: 'nowrap',
+    })
+    toast.textContent = text
+    document.body.appendChild(toast)
+    if (type !== 'info') {
+      setTimeout(() => toast.remove(), 3000)
+    }
+    return toast
+  }
+
   // 元素检查模式 — 鼠标悬停高亮，点击提取
   function startInspect(sendResponse) {
     if (inspecting) {
@@ -84,7 +128,7 @@
 
     inspecting = true
 
-    // 创建 overlay
+    // 创建高亮 overlay
     inspectOverlay = document.createElement('div')
     inspectOverlay.id = 'kbt-inspect-overlay'
     Object.assign(inspectOverlay.style, {
@@ -92,11 +136,14 @@
       pointerEvents: 'none',
       border: '2px solid #00F0FF',
       background: 'rgba(0, 240, 255, 0.1)',
-      zIndex: '2147483647',
+      zIndex: '2147483646',
       transition: 'all 100ms',
       display: 'none',
     })
     document.body.appendChild(inspectOverlay)
+
+    // 顶部引导 Toast
+    showPageToast('🔍 KBT 检查模式 — 点击要保存的元素，ESC 退出', 'info')
 
     let hoveredEl = null
 
@@ -119,12 +166,20 @@
 
       if (hoveredEl && hoveredEl !== inspectOverlay) {
         const markdown = htmlToMarkdown(hoveredEl)
-        // 通过 runtime message 发送结果回 popup/background
+        // 显示"保存中"提示
+        showPageToast('⏳ 正在保存元素...', 'info')
+        // 通过 runtime message 发送结果回 background service worker
         chrome.runtime.sendMessage({
           action: 'inspectResult',
           content: markdown,
           title: document.title,
           url: location.href,
+        }, (resp) => {
+          if (resp?.ok) {
+            showPageToast('✅ 已保存到知识库', 'success')
+          } else {
+            showPageToast('❌ 保存失败，请检查桌面端是否运行', 'error')
+          }
         })
       }
 
@@ -134,6 +189,8 @@
     function onKeyDown(e) {
       if (e.key === 'Escape') {
         stopInspect()
+        const toast = document.getElementById('kbt-toast')
+        if (toast) toast.remove()
       }
     }
 
@@ -283,3 +340,4 @@
     return '\n' + result.join('\n') + '\n\n'
   }
 })()
+} // end else (re-injection guard)

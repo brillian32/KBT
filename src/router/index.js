@@ -23,9 +23,9 @@ const routes = [
     component: () => import('../views/RegionSelect.vue'),
   },
   {
-    path: '/region-select',
-    name: 'region-select',
-    component: () => import('../views/RegionSelect.vue'),
+    path: '/note/:id',
+    name: 'note-detail',
+    component: () => import('../views/NoteDetailView.vue'),
   },
 ]
 

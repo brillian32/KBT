@@ -2,7 +2,7 @@
   <div class="app-shell">
     <TitleBar />
     <div class="app-body">
-      <SideNav :currentPath="currentRoute" @navigate="navigate" />
+      <SideNav v-if="!isStandalone" :currentPath="currentRoute" @navigate="navigate" />
       <main class="app-content">
         <router-view />
       </main>
@@ -19,6 +19,9 @@ import SideNav from './components/SideNav.vue'
 const router = useRouter()
 const route = useRoute()
 const currentRoute = computed(() => route.path)
+
+const standaloneRoutes = ['/quick-note', '/region-select']
+const isStandalone = computed(() => standaloneRoutes.includes(route.path))
 
 function navigate(path) {
   router.push(path)

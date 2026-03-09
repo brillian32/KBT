@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Tray, Menu, globalShortcut, nativeImage } = require('electron')
+const { app, BrowserWindow, ipcMain, Tray, Menu, globalShortcut, nativeImage, shell } = require('electron')
 const path = require('path')
 const { ConfigStore } = require('./config-store')
 const { ObsidianWriter } = require('./obsidian-writer')
@@ -66,11 +66,14 @@ function initBackendModules() {
   // 截图
   screenshot = new Screenshot()
 
-  // HTTP 服务器
-  httpServer = new HttpServer(config.server.port, obsidianWriter, autoTagger)
+  // HTTP 服务器 — 复用已有 token，避免每次重启后扩展需重新配置
+  const savedToken = config.server?.token || null
+  httpServer = new HttpServer(config.server.port, obsidianWriter, autoTagger, savedToken)
 
-  // 将 token 写回配置
-  configStore.set('server.token', httpServer.getToken())
+  // token 有变动（首次启动）时写入配置
+  if (!savedToken) {
+    configStore.set('server.token', httpServer.getToken())
+  }
 
   // 收到 clip 时通知渲染进程
   httpServer.onClip((data) => {
@@ -95,6 +98,7 @@ function addNoteToHistory(note) {
     preview: (note.content || '').slice(0, 200),
     createdAt: new Date().toISOString(),
     path: note.result?.path || '',
+    imagePath: note.imagePath || '',
   })
   // 最多保留 500 条
   if (notesHistory.length > 500) notesHistory.length = 500
@@ -125,12 +129,14 @@ function getLoadFile() {
 }
 
 function createWindow() {
+  const iconPath = path.join(__dirname, '../build/icon.png')
   mainWindow = new BrowserWindow({
     width: 1000,
     height: 700,
     minWidth: 800,
     minHeight: 600,
     frame: false,
+    icon: require('fs').existsSync(iconPath) ? iconPath : undefined,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -196,10 +202,17 @@ function createQuickNoteWindow(screenshotData) {
 
 // 系统托盘
 function createTray() {
-  // 创建 16x16 简单图标（纯色方块）
-  const icon = nativeImage.createFromBuffer(
-    Buffer.from('iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAOklEQVQ4T2P8z8DwnwEPYMQnT4waoQaQbAA+Q0g2gBgX0A0geRDRDSB5GJFsAKWJiGQDKE1FRBsAAGgiJhFu/LekAAAAAElFTkSuQmCC', 'base64')
-  )
+  // 加载生成的托盘图标
+  const trayIconPath = path.join(__dirname, '../build/tray-icon.png')
+  let icon
+  if (require('fs').existsSync(trayIconPath)) {
+    icon = nativeImage.createFromPath(trayIconPath)
+  } else {
+    // fallback: 简单彩色方块
+    icon = nativeImage.createFromBuffer(
+      Buffer.from('iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAOklEQVQ4T2P8z8DwnwEPYMQnT4waoQaQbAA+Q0g2gBgX0A0geRDRDSB5GJFsAKWJiGQDKE1FRBsAAGgiJhFu/LekAAAAAElFTkSuQmCC', 'base64')
+    )
+  }
 
   tray = new Tray(icon)
   tray.setToolTip('Knowledge Base Tools')
@@ -346,19 +359,21 @@ ipcMain.handle('settings:save', (_event, settings) => {
 // IPC handlers — 笔记操作
 ipcMain.handle('note:save', async (_event, note) => {
   try {
+    let imagePath = ''
+
     // 处理截图数据
     if (note.screenshot) {
       const base64Data = note.screenshot.replace(/^data:image\/\w+;base64,/, '')
       const imgBuffer = Buffer.from(base64Data, 'base64')
       const config = configStore.getAll()
       const imgFilename = `screenshot_${Date.now()}.png`
-      // 截图图片存入 Inbox/Screenshots/ 目录，与笔记文件放在一起
-      const imgDir = path.join(config.obsidian.vaultPath, config.directories.screenshots)
+      // 截图图片存入 attachments 子目录，与 md 笔记文件分层管理
+      const imgDir = path.join(config.obsidian.vaultPath, config.directories.screenshots, 'attachments')
       if (!fs.existsSync(imgDir)) fs.mkdirSync(imgDir, { recursive: true })
-      const imgPath = path.join(imgDir, imgFilename)
-      fs.writeFileSync(imgPath, imgBuffer)
-      // 在内容中嵌入图片引用
-      note.content = `![[${config.directories.screenshots}/${imgFilename}]]\n\n${note.content || ''}`
+      imagePath = path.join(imgDir, imgFilename)
+      fs.writeFileSync(imagePath, imgBuffer)
+      // 在内容中嵌入图片引用（Obsidian 相对 wikilink）
+      note.content = `![[attachments/${imgFilename}]]\n\n${note.content || ''}`
       delete note.screenshot
       // 有截图时强制将笔记路由到 Screenshots 目录
       note.type = 'screenshot'
@@ -382,8 +397,13 @@ ipcMain.handle('note:save', async (_event, note) => {
 
     const result = await obsidianWriter.write(writeNote)
 
-    // 添加到历史
-    addNoteToHistory({ ...writeNote, result })
+    // 添加到历史（含图片绝对路径）
+    addNoteToHistory({ ...writeNote, imagePath, result })
+
+    // 通知主窗口刷新笔记列表
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('clip:received', {})
+    }
 
     return { success: true, path: result.path }
   } catch (err) {
@@ -391,8 +411,40 @@ ipcMain.handle('note:save', async (_event, note) => {
   }
 })
 
+// IPC handler — 读取图片文件返回 base64（仅限知识库路径内）
+ipcMain.handle('note:read-image', (_event, imgPath) => {
+  try {
+    if (!imgPath) return { success: false, error: '路径为空' }
+    const config = configStore.getAll()
+    const vaultPath = config.obsidian.vaultPath
+    if (!vaultPath) return { success: false, error: '知识库路径未配置' }
+    const resolvedImg = path.resolve(imgPath)
+    const resolvedVault = path.resolve(vaultPath)
+    if (!resolvedImg.startsWith(resolvedVault + path.sep) && resolvedImg !== resolvedVault) {
+      return { success: false, error: '路径不在知识库范围内' }
+    }
+    if (!fs.existsSync(resolvedImg)) return { success: false, error: '图片文件不存在' }
+    const buffer = fs.readFileSync(resolvedImg)
+    return { success: true, data: `data:image/png;base64,${buffer.toString('base64')}` }
+  } catch (err) {
+    return { success: false, error: err.message }
+  }
+})
+
 ipcMain.handle('notes:list', () => {
-  return notesHistory
+  // 过滤掉 vault 中已删除的文件，与 Obsidian 显示逻辑保持一致
+  return notesHistory.filter(note => {
+    if (!note.path) return true  // 无路径记录（旧数据/外部来源），保留
+    try { return fs.existsSync(note.path) } catch { return true }
+  })
+})
+
+// IPC handler — 在 Obsidian 中打开笔记
+ipcMain.handle('note:open-in-obsidian', (_event, notePath) => {
+  if (!notePath) return { success: false, error: '路径为空' }
+  const uri = `obsidian://open?path=${encodeURIComponent(notePath)}`
+  shell.openExternal(uri)
+  return { success: true }
 })
 
 // IPC handler — 截图（调用 handleScreenshot 以打开相应窗口）

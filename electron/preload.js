@@ -13,6 +13,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // 笔记操作
   saveNote: (note) => ipcRenderer.invoke('note:save', note),
   getNotes: () => ipcRenderer.invoke('notes:list'),
+  readImage: (imgPath) => ipcRenderer.invoke('note:read-image', imgPath),
+  openNoteInObsidian: (notePath) => ipcRenderer.invoke('note:open-in-obsidian', notePath),
 
   // 截图
   takeScreenshot: (mode) => ipcRenderer.invoke('screenshot:take', mode),

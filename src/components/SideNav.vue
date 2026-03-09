@@ -83,12 +83,6 @@ const SettingsIcon = {
 
 const navItems = [
   { id: 'home', path: '/', label: '收藏', icon: InboxIcon },
-  {
-    id: 'screenshot',
-    label: '全屏截图',
-    icon: CameraIcon,
-    action: () => window.electronAPI?.takeScreenshot('full'),
-  },
 ]
 </script>
 

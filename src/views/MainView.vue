@@ -18,6 +18,7 @@
           v-for="note in notesStore.notes"
           :key="note.id"
           :note="note"
+          @click="openNote"
         />
       </div>
     </section>
@@ -26,15 +27,26 @@
 
 <script setup>
 import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useNotesStore } from '../stores/notes.js'
 import NoteCard from '../components/NoteCard.vue'
 import TextPasteInput from '../components/TextPasteInput.vue'
 
 const notesStore = useNotesStore()
+const router = useRouter()
 
 onMounted(() => {
   notesStore.loadNotes()
+  notesStore.initListeners()
 })
+
+function openNote(note) {
+  if (note.path && window.electronAPI?.openNoteInObsidian) {
+    window.electronAPI.openNoteInObsidian(note.path)
+  } else {
+    router.push({ name: 'note-detail', params: { id: note.id } })
+  }
+}
 </script>
 
 <style scoped>

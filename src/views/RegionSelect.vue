@@ -29,7 +29,7 @@
     </div>
 
     <!-- 确认/取消按钮 -->
-    <div v-if="hasSelection && !selecting" class="actions" :style="actionsStyle">
+    <div v-if="hasSelection && !selecting" class="actions" :style="actionsStyle" @mousedown.stop>
       <button class="btn confirm" @click="confirm">✓</button>
       <button class="btn cancel-btn" @click="cancel">✕</button>
     </div>
@@ -109,13 +109,14 @@ function cancel() {
   window.electronAPI?.cancelRegion()
 }
 
-onMounted(() => {
+onMounted(async () => {
   container.value?.focus()
-  // 通过 IPC 接收主进程发送的背景截图
-  if (window.electronAPI?.onScreenshotBackdrop) {
-    window.electronAPI.onScreenshotBackdrop((base64) => {
+  // 主动向主进程拉取背景截图（避免 did-finish-load 早于 onMounted 的时序问题）
+  if (window.electronAPI?.getRegionBackdrop) {
+    const base64 = await window.electronAPI.getRegionBackdrop()
+    if (base64) {
       backgroundImage.value = `data:image/png;base64,${base64}`
-    })
+    }
   }
 })
 </script>

@@ -3,11 +3,12 @@ const cors = require('cors')
 const crypto = require('crypto')
 
 class HttpServer {
-  constructor(port, obsidianWriter, autoTagger) {
+  constructor(port, obsidianWriter, autoTagger, existingToken) {
     this.port = port
     this.writer = obsidianWriter
     this.tagger = autoTagger
-    this.token = crypto.randomBytes(32).toString('hex')
+    // 复用已有 token（跨重启稳定），仅首次生成新 token
+    this.token = existingToken || crypto.randomBytes(32).toString('hex')
     this.server = null
     this.onClipCallback = null
 
