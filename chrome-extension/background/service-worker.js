@@ -38,7 +38,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       content: msg.content,
       url: msg.url || sender.tab?.url,
       type: 'webclip',
-      tags: [],
+      tags: msg.tags || [],
     }).then(ok => {
       chrome.notifications.create({
         type: 'basic',
