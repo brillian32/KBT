@@ -8,10 +8,12 @@
   const btnFullPage = document.getElementById('btnFullPage')
   const btnSelection = document.getElementById('btnSelection')
   const btnInspect = document.getElementById('btnInspect')
+  const btnSettings = document.getElementById('btnSettings')
   const noteTitle = document.getElementById('noteTitle')
   const tagContainer = document.getElementById('tagContainer')
   const tagInput = document.getElementById('tagInput')
   const tokenSection = document.getElementById('tokenSection')
+  const tokenStatus = document.getElementById('tokenStatus')
   const tokenInput = document.getElementById('tokenInput')
   const btnSaveToken = document.getElementById('btnSaveToken')
   const messageEl = document.getElementById('message')
@@ -50,20 +52,55 @@
         setStatus('connected', '已连接')
         if (token) {
           enableButtons(true)
-          tokenSection.style.display = 'none'
         } else {
           enableButtons(false)
-          tokenSection.style.display = ''
+          // 无 token 时自动展开设置抽屉
+          openSettings()
         }
       } else {
         throw new Error('not ok')
       }
     } catch {
       setStatus('disconnected', token ? '桌面端未运行' : '未连接')
-      tokenSection.style.display = ''
       enableButtons(false)
+      if (!token) openSettings()
     }
   }
+
+  // 齿轮按钒切换 token 抽屉
+  function openSettings() {
+    tokenSection.style.display = ''
+    btnSettings.classList.add('active')
+    renderTokenStatus()
+  }
+
+  function closeSettings() {
+    tokenSection.style.display = 'none'
+    btnSettings.classList.remove('active')
+  }
+
+  function renderTokenStatus() {
+    if (token) {
+      tokenStatus.innerHTML = `状态：<span class="kbt-bound">✅ 已绑定</span> <span class="kbt-token-mask">${token.slice(0, 8)}&hellip;</span> <button id="btnClearToken" class="popup__link-btn">解除绑定</button>`
+      document.getElementById('btnClearToken')?.addEventListener('click', async () => {
+        token = ''
+        await chrome.storage.local.remove('kbt_token')
+        renderTokenStatus()
+        enableButtons(false)
+        showMessage('Token 已清除', 'success')
+      })
+    } else {
+      tokenStatus.innerHTML = `状态：<span class="kbt-unbound">⚠️ 未绑定</span>`
+    }
+  }
+
+  btnSettings.addEventListener('click', () => {
+    if (tokenSection.style.display === 'none') {
+      openSettings()
+    } else {
+      closeSettings()
+    }
+  })
 
   function setStatus(state, text) {
     statusEl.className = `popup__status popup__status--${state}`
@@ -116,9 +153,13 @@
     const val = tokenInput.value.trim()
     if (!val) return
     token = val
+    tokenInput.value = ''
     await chrome.storage.local.set({ kbt_token: val })
-    showMessage('Token 已保存', 'success')
+    renderTokenStatus()
+    showMessage('Token 已绑定，重新检测连接...', 'success')
     await checkConnection()
+    // 绑定成功后自动收起设置抽屉
+    if (token) closeSettings()
   })
 
   // 保存操作
